@@ -4,7 +4,9 @@
  */
 export const Colors = {
   /** Azul Institucional - Cor Primária (Brand) */
-  primary: '#0056D2',
+  primary: '#01092D',
+  /** Tom final do degradé institucional */
+  primaryGradientEnd: '#112F65',
   /** Fundo Cinza Claro - Cor Secundária */
   secondary: '#F4F6F8',
   /** Validação de RS inválido / Erros */
@@ -19,6 +21,13 @@ export const Colors = {
   white: '#FFFFFF',
   /** Cinza para bordas/divisórias */
   border: '#E0E0E0',
+} as const;
+
+/** Degradé azul institucional (#01092D → #112F65) */
+export const BrandGradient = {
+  colors: [Colors.primary, Colors.primaryGradientEnd] as [string, string],
+  start: { x: 0, y: 0 },
+  end: { x: 1, y: 1 },
 } as const;
 
 export type ColorsType = typeof Colors;

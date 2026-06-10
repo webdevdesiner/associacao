@@ -11,6 +11,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { MOCK_CHAMADOS } from '@/constants/MockData';
 import type { Chamado } from '@/constants/types';
 import { Colors } from '@/constants/Colors';
+import { BrandGradientView } from '@/components/BrandGradient';
 
 function getIniciais(name: string): string {
   const partes = name
@@ -53,9 +54,9 @@ function ChamadoItem({ item }: { item: Chamado }) {
       activeOpacity={0.7}
       onPress={() => router.push(`/(tabs)/juridico/${item.id}`)}
     >
-      <View style={styles.avatar}>
+      <BrandGradientView style={styles.avatar}>
         <Text style={styles.avatarText}>{getIniciais(item.lawyerName)}</Text>
-      </View>
+      </BrandGradientView>
       <View style={styles.content}>
         <View style={styles.header}>
           <Text style={styles.nome} numberOfLines={1}>
@@ -93,11 +94,13 @@ export default function JuridicoListScreen() {
         ItemSeparatorComponent={() => <View style={styles.separator} />}
       />
       <TouchableOpacity
-        style={styles.fab}
         activeOpacity={0.8}
         onPress={() => {}}
+        style={styles.fabWrap}
       >
-        <Ionicons name="add" size={28} color={Colors.white} />
+        <BrandGradientView style={styles.fab}>
+          <Ionicons name="add" size={28} color={Colors.white} />
+        </BrandGradientView>
       </TouchableOpacity>
     </View>
   );
@@ -128,7 +131,6 @@ const styles = StyleSheet.create({
     width: 52,
     height: 52,
     borderRadius: 26,
-    backgroundColor: Colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -160,20 +162,23 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: Colors.textSecondary,
   },
-  fab: {
+  fabWrap: {
     position: 'absolute',
     right: 20,
     bottom: 24,
-    width: 56,
-    height: 56,
     borderRadius: 28,
-    backgroundColor: Colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
+    overflow: 'hidden',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.25,
     shadowRadius: 4,
     elevation: 8,
+  },
+  fab: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });

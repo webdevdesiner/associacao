@@ -10,11 +10,20 @@ async function main() {
   await prisma.pauta.deleteMany();
   await prisma.user.deleteMany();
 
-  // 1. User (mesmo do Mock: Maria da Silva)
+  // 1. Users (mesmos do Mock do app)
   const user = await prisma.user.create({
     data: {
       name: 'Maria da Silva',
       rs_registro: '12345',
+      plan: 'Gold',
+      status: 'active',
+    },
+  });
+
+  await prisma.user.create({
+    data: {
+      name: 'Fernando de Oliveira Guedes',
+      rs_registro: '9999999999',
       plan: 'Gold',
       status: 'active',
     },

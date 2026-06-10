@@ -11,6 +11,11 @@ export interface User {
   status: 'active' | 'delinquent';
 }
 
+export interface MockAccount extends User {
+  email: string;
+  password: string;
+}
+
 export interface Pauta {
   id: string;
   title: string;
@@ -26,11 +31,19 @@ export interface Pauta {
   };
 }
 
+export interface ChatAttachment {
+  name: string;
+  uri: string;
+  mimeType?: string | null;
+  size?: number | null;
+}
+
 export interface ChatMessage {
   id: string;
   text: string;
   sender: 'user' | 'lawyer' | 'system';
   timestamp: string;
+  attachment?: ChatAttachment;
 }
 
 export interface Chamado {

@@ -11,12 +11,18 @@ import {
 import { useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { MOCK_PAUTAS } from '@/constants/MockData';
+import { hasPautaPdf, getPautaPdfLabel } from '@/constants/pautaAssets';
+import { hasPautaVideo } from '@/constants/pautaVideos';
+import { PautaVideoModal } from '@/components/PautaVideoModal';
+import { PautaPdfConfirmModal } from '@/components/PautaPdfConfirmModal';
 import { Colors } from '@/constants/Colors';
 
 export default function PautaDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const [hasVoted, setHasVoted] = useState(false);
   const [votoPendente, setVotoPendente] = useState<string | null>(null);
+  const [videoModalVisible, setVideoModalVisible] = useState(false);
+  const [pdfModalVisible, setPdfModalVisible] = useState(false);
 
   const pauta = MOCK_PAUTAS.find((p) => p.id === id);
   const isOpen = pauta?.status === 'open';
@@ -69,14 +75,52 @@ export default function PautaDetailScreen() {
 
       {/* Placeholders Vídeo e PDF */}
       <View style={styles.mediaRow}>
-        <View style={styles.mediaPlaceholder}>
-          <Ionicons name="videocam-outline" size={32} color={Colors.textSecondary} />
-          <Text style={styles.mediaLabel}>Vídeo</Text>
-        </View>
-        <View style={styles.mediaPlaceholder}>
-          <Ionicons name="document-text-outline" size={32} color={Colors.textSecondary} />
-          <Text style={styles.mediaLabel}>PDF</Text>
-        </View>
+        <TouchableOpacity
+          style={[
+            styles.mediaPlaceholder,
+            hasPautaVideo(pauta.id) && styles.mediaPlaceholderActive,
+          ]}
+          activeOpacity={hasPautaVideo(pauta.id) ? 0.7 : 1}
+          disabled={!hasPautaVideo(pauta.id)}
+          onPress={() => setVideoModalVisible(true)}
+        >
+          <Ionicons
+            name="videocam-outline"
+            size={32}
+            color={hasPautaVideo(pauta.id) ? Colors.primary : Colors.textSecondary}
+          />
+          <Text
+            style={[
+              styles.mediaLabel,
+              hasPautaVideo(pauta.id) && styles.mediaLabelActive,
+            ]}
+          >
+            {hasPautaVideo(pauta.id) ? 'Assistir vídeo' : 'Vídeo'}
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[
+            styles.mediaPlaceholder,
+            hasPautaPdf(pauta.id) && styles.mediaPlaceholderActive,
+          ]}
+          activeOpacity={hasPautaPdf(pauta.id) ? 0.7 : 1}
+          disabled={!hasPautaPdf(pauta.id)}
+          onPress={() => setPdfModalVisible(true)}
+        >
+          <Ionicons
+            name="document-text-outline"
+            size={32}
+            color={hasPautaPdf(pauta.id) ? Colors.primary : Colors.textSecondary}
+          />
+          <Text
+            style={[
+              styles.mediaLabel,
+              hasPautaPdf(pauta.id) && styles.mediaLabelActive,
+            ]}
+          >
+            {hasPautaPdf(pauta.id) ? 'Abrir PDF' : 'PDF'}
+          </Text>
+        </TouchableOpacity>
       </View>
 
       {/* Área de Votação */}
@@ -120,6 +164,23 @@ export default function PautaDetailScreen() {
           </>
         )}
       </View>
+
+      <PautaVideoModal
+        visible={videoModalVisible}
+        title={pauta.title}
+        pautaId={pauta.id}
+        onClose={() => setVideoModalVisible(false)}
+      />
+
+      {hasPautaPdf(pauta.id) && (
+        <PautaPdfConfirmModal
+          visible={pdfModalVisible}
+          pautaId={pauta.id}
+          pautaTitle={pauta.title}
+          pdfFileName={getPautaPdfLabel(pauta.id) ?? 'documento.pdf'}
+          onClose={() => setPdfModalVisible(false)}
+        />
+      )}
 
       <Modal
         visible={votoPendente !== null}
@@ -219,10 +280,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  mediaPlaceholderActive: {
+    backgroundColor: '#E3F2FD',
+    borderWidth: 1,
+    borderColor: Colors.primary,
+  },
   mediaLabel: {
     marginTop: 8,
     fontSize: 14,
     color: Colors.textSecondary,
+  },
+  mediaLabelActive: {
+    color: Colors.primary,
+    fontWeight: '600',
   },
   votingSection: {
     backgroundColor: Colors.white,

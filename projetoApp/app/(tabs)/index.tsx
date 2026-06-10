@@ -1,74 +1,156 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   View,
   Text,
   ScrollView,
   TouchableOpacity,
   StyleSheet,
+  Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import { MOCK_PAUTAS, MOCK_BENEFICIOS } from '@/constants/MockData';
 import {
-  MOCK_USER,
-  MOCK_PAUTAS,
-  MOCK_BENEFICIOS,
-} from '@/constants/MockData';
+  MOCK_PUSH_NOTIFICATIONS,
+  type MockPushNotification,
+} from '@/constants/mockNotifications';
 import { Colors } from '@/constants/Colors';
 import { CarteirinhaModal } from '@/components/CarteirinhaModal';
+import { StickyHomeHeader } from '@/components/StickyHomeHeader';
+import { PushNotificationBanner } from '@/components/PushNotificationBanner';
+import { NotificationsListModal } from '@/components/NotificationsListModal';
+import { ActiveAlertsSection } from '@/components/ActiveAlertsSection';
+import { useAuth } from '@/contexts/AuthContext';
 
-function getIniciais(name: string): string {
-  const partes = name.trim().split(/\s+/);
-  if (partes.length >= 2) {
-    return (partes[0][0] + partes[partes.length - 1][0]).toUpperCase();
-  }
-  return name.slice(0, 2).toUpperCase();
-}
+const PUSH_INITIAL_DELAY_MS = 2500;
+const PUSH_AUTO_DISMISS_MS = 6000;
 
 function getStatusLabel(status: string): string {
   return status === 'active' ? 'Ativo' : 'Inadimplente';
 }
 
+function getBeneficioIcon(
+  titulo: string,
+): keyof typeof Ionicons.glyphMap {
+  const lower = titulo.toLowerCase();
+  if (lower.includes('farmácia') || lower.includes('farmacia')) return 'medkit';
+  if (lower.includes('posto')) return 'car';
+  if (lower.includes('cinema')) return 'film';
+  if (lower.includes('academia') || lower.includes('fit')) return 'barbell-outline';
+  if (lower.includes('restaurante')) return 'restaurant-outline';
+  if (lower.includes('ótica') || lower.includes('otica')) return 'eye-outline';
+  if (lower.includes('supermercado')) return 'cart-outline';
+  if (lower.includes('hotel')) return 'bed-outline';
+  return 'pricetag';
+}
+
 export default function HomeScreen() {
   const router = useRouter();
+  const { user } = useAuth();
   const [carteirinhaAberta, setCarteirinhaAberta] = useState(false);
+  const [bannerVisible, setBannerVisible] = useState(false);
+  const [bannerIndex, setBannerIndex] = useState(0);
+  const [notificationsListVisible, setNotificationsListVisible] = useState(false);
+  const pushQueueRef = useRef(MOCK_PUSH_NOTIFICATIONS);
   const temPautaAberta = MOCK_PAUTAS.some((p) => p.status === 'open');
-  const beneficioCardSize = 120;
+
+  const currentBanner = pushQueueRef.current[bannerIndex] ?? null;
+
+  const openNotification = useCallback(
+    (notification: MockPushNotification) => {
+      setBannerVisible(false);
+      setNotificationsListVisible(false);
+      router.push(notification.route as never);
+    },
+    [router],
+  );
+
+  const dismissBanner = useCallback(() => {
+    setBannerVisible(false);
+    const nextIndex = bannerIndex + 1;
+    if (nextIndex < pushQueueRef.current.length) {
+      setTimeout(() => {
+        setBannerIndex(nextIndex);
+        setBannerVisible(true);
+      }, 800);
+    }
+  }, [bannerIndex]);
+
+  useEffect(() => {
+    const showTimer = setTimeout(() => setBannerVisible(true), PUSH_INITIAL_DELAY_MS);
+    return () => clearTimeout(showTimer);
+  }, []);
+
+  useEffect(() => {
+    if (!bannerVisible || !currentBanner) return;
+
+    const autoDismissTimer = setTimeout(dismissBanner, PUSH_AUTO_DISMISS_MS);
+    return () => clearTimeout(autoDismissTimer);
+  }, [bannerVisible, currentBanner, dismissBanner]);
+
+  if (!user) {
+    return null;
+  }
 
   return (
+    <View style={styles.screen}>
+      <PushNotificationBanner
+        notification={currentBanner}
+        visible={bannerVisible}
+        onDismiss={dismissBanner}
+        onPress={() => currentBanner && openNotification(currentBanner)}
+      />
+
+      <NotificationsListModal
+        visible={notificationsListVisible}
+        notifications={MOCK_PUSH_NOTIFICATIONS}
+        onClose={() => setNotificationsListVisible(false)}
+        onPress={openNotification}
+      />
+
+      <StickyHomeHeader
+        userId={user.id}
+        userName={user.name}
+        firstName={user.name.split(' ')[0]}
+        notificationCount={MOCK_PUSH_NOTIFICATIONS.length}
+        onNotificationPress={() => {
+          setBannerVisible(false);
+          setNotificationsListVisible(true);
+        }}
+        onAvatarPress={() => router.push('/(tabs)/perfil')}
+      />
+
     <ScrollView
       style={styles.container}
       contentContainerStyle={styles.content}
       showsVerticalScrollIndicator={false}
+      nestedScrollEnabled
     >
-      {/* Header de Boas-vindas */}
-      <View style={styles.header}>
-        <Text style={styles.greeting}>
-          Olá, {MOCK_USER.name.split(' ')[0]}
-        </Text>
-        <View style={styles.avatar}>
-          <Text style={styles.avatarText}>{getIniciais(MOCK_USER.name)}</Text>
-        </View>
-      </View>
-
       {/* Carteirinha Digital */}
-      <View style={styles.carteirinha}>
+      <LinearGradient
+        colors={['#D4AF37', '#8A6327']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.carteirinha}
+      >
         <View style={styles.carteirinhaContent}>
-          <Text style={styles.carteirinhaNome}>{MOCK_USER.name}</Text>
-          <Text style={styles.carteirinhaRS}>RS {MOCK_USER.rs_registro}</Text>
-          <Text style={styles.carteirinhaPlano}>Plano {MOCK_USER.plan}</Text>
+          <Text style={styles.carteirinhaNome}>{user.name}</Text>
+          <Text style={styles.carteirinhaRS}>RS {user.rs_registro}</Text>
+          <Text style={styles.carteirinhaPlano}>Plano {user.plan}</Text>
           <View
             style={[
               styles.statusTag,
-              MOCK_USER.status === 'active' ? styles.statusAtivo : styles.statusInadimplente,
+              user.status === 'active' ? styles.statusAtivo : styles.statusInadimplente,
             ]}
           >
             <Text
               style={[
                 styles.statusText,
-                MOCK_USER.status === 'active' ? styles.statusTextAtivo : styles.statusTextInadimplente,
+                user.status === 'active' ? styles.statusTextAtivo : styles.statusTextInadimplente,
               ]}
             >
-              Status: {getStatusLabel(MOCK_USER.status)}
+              Status: {getStatusLabel(user.status)}
             </Text>
           </View>
         </View>
@@ -78,19 +160,29 @@ export default function HomeScreen() {
           onPress={() => setCarteirinhaAberta(true)}
           accessibilityLabel="Abrir carteirinha digital"
         >
-          <Ionicons name="qr-code-outline" size={40} color="rgba(255,255,255,0.9)" />
+          <Ionicons name="qr-code-outline" size={40} color="rgba(255,255,255,0.95)" />
         </TouchableOpacity>
-      </View>
+      </LinearGradient>
 
       <CarteirinhaModal
         visible={carteirinhaAberta}
-        user={MOCK_USER}
+        user={user}
         onClose={() => setCarteirinhaAberta(false)}
+      />
+
+      <ActiveAlertsSection
+        notifications={MOCK_PUSH_NOTIFICATIONS}
+        onPress={openNotification}
       />
 
       {/* Atalhos Rápidos */}
       <Text style={styles.sectionTitle}>Atalhos Rápidos</Text>
-      <View style={styles.atalhosGrid}>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        nestedScrollEnabled
+        contentContainerStyle={styles.atalhosScroll}
+      >
         <TouchableOpacity
           style={styles.atalhoCard}
           activeOpacity={0.7}
@@ -112,75 +204,124 @@ export default function HomeScreen() {
           <Ionicons name="people" size={28} color={Colors.primary} />
           <Text style={styles.atalhoTexto}>Falar com Jurídico</Text>
         </TouchableOpacity>
-      </View>
+        <TouchableOpacity
+          style={[styles.atalhoCard, styles.atalhoCardRoadmap]}
+          activeOpacity={0.7}
+          onPress={() =>
+            Alert.alert(
+              'Em breve',
+              'Este módulo está previsto para a próxima fase de desenvolvimento do app.',
+            )
+          }
+        >
+          <Ionicons name="wallet-outline" size={28} color={Colors.primary} />
+          <Text style={styles.atalhoTexto}>Financeiro</Text>
+          <Text style={styles.atalhoEmBreve}>Em breve</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.atalhoCard, styles.atalhoCardRoadmap]}
+          activeOpacity={0.7}
+          onPress={() =>
+            Alert.alert(
+              'Em breve',
+              'Este módulo está previsto para a próxima fase de desenvolvimento do app.',
+            )
+          }
+        >
+          <Ionicons name="calendar-outline" size={28} color={Colors.primary} />
+          <Text style={styles.atalhoTexto}>Eventos</Text>
+          <Text style={styles.atalhoEmBreve}>Em breve</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.atalhoCard, styles.atalhoCardRoadmap]}
+          activeOpacity={0.7}
+          onPress={() =>
+            Alert.alert(
+              'Em breve',
+              'Este módulo está previsto para a próxima fase de desenvolvimento do app.',
+            )
+          }
+        >
+          <Ionicons name="school-outline" size={28} color={Colors.primary} />
+          <Text style={styles.atalhoTexto}>Cursos EAD</Text>
+          <Text style={styles.atalhoEmBreve}>Em breve</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.atalhoCard, styles.atalhoCardRoadmap]}
+          activeOpacity={0.7}
+          onPress={() =>
+            Alert.alert(
+              'Em breve',
+              'Este módulo está previsto para a próxima fase de desenvolvimento do app.',
+            )
+          }
+        >
+          <Ionicons name="megaphone-outline" size={28} color={Colors.primary} />
+          <Text style={styles.atalhoTexto}>Classificados</Text>
+          <Text style={styles.atalhoEmBreve}>Em breve</Text>
+        </TouchableOpacity>
+      </ScrollView>
 
       {/* Clube de Vantagens */}
-      <Text style={styles.sectionTitle}>Benefícios para Associados</Text>
+      <View style={styles.beneficiosSectionHeader}>
+        <Text style={styles.beneficiosSectionTitle}>Benefícios para Associados</Text>
+        <TouchableOpacity activeOpacity={0.7} accessibilityLabel="Ver todos os benefícios">
+          <Text style={styles.verTodosLink}>Ver todos {'>'}</Text>
+        </TouchableOpacity>
+      </View>
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.beneficiosScroll}
       >
         {MOCK_BENEFICIOS.map((beneficio) => (
-          <View key={beneficio.id} style={[styles.beneficioCard, { width: beneficioCardSize, height: beneficioCardSize }]}>
-            <Ionicons name="pricetag" size={24} color={Colors.primary} />
-            <Text style={styles.beneficioTitulo} numberOfLines={1}>
+          <View key={beneficio.id} style={styles.beneficioCard}>
+            <Ionicons
+              name={getBeneficioIcon(beneficio.titulo)}
+              size={28}
+              color={Colors.primary}
+            />
+            <Text style={styles.beneficioTitulo} numberOfLines={2}>
               {beneficio.titulo}
             </Text>
-            <Text style={styles.beneficioDesconto}>{beneficio.desconto}</Text>
+            <View style={styles.descontoBadge}>
+              <Text style={styles.descontoBadgeText}>{beneficio.desconto}</Text>
+            </View>
           </View>
         ))}
       </ScrollView>
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  screen: {
+    flex: 1,
+    backgroundColor: Colors.secondary,
+  },
   container: {
     flex: 1,
     backgroundColor: Colors.secondary,
   },
   content: {
     padding: 20,
+    paddingTop: 16,
     paddingBottom: 40,
   },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  greeting: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: Colors.text,
-  },
-  avatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: Colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  avatarText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: Colors.white,
-  },
   carteirinha: {
-    backgroundColor: Colors.primary,
     borderRadius: 16,
     padding: 20,
     marginBottom: 28,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    shadowColor: '#0056D2',
+    shadowColor: '#8A6327',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
+    shadowOpacity: 0.35,
     shadowRadius: 8,
     elevation: 6,
+    overflow: 'hidden',
   },
   carteirinhaContent: {
     flex: 1,
@@ -232,24 +373,29 @@ const styles = StyleSheet.create({
     color: Colors.text,
     marginBottom: 16,
   },
-  atalhosGrid: {
+  atalhosScroll: {
     flexDirection: 'row',
     gap: 12,
+    paddingRight: 4,
+    paddingBottom: 4,
     marginBottom: 28,
   },
   atalhoCard: {
-    flex: 1,
+    width: 150,
     backgroundColor: Colors.white,
     borderRadius: 16,
     padding: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: 100,
+    minHeight: 110,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,
     shadowRadius: 6,
     elevation: 3,
+  },
+  atalhoCardRoadmap: {
+    opacity: 0.7,
   },
   badge: {
     position: 'absolute',
@@ -274,33 +420,67 @@ const styles = StyleSheet.create({
     marginTop: 10,
     textAlign: 'center',
   },
+  atalhoEmBreve: {
+    fontSize: 10,
+    fontWeight: '500',
+    color: '#6B7280',
+    marginTop: 4,
+    textAlign: 'center',
+  },
+  beneficiosSectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+  },
+  beneficiosSectionTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: Colors.text,
+    flex: 1,
+  },
+  verTodosLink: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: Colors.primary,
+  },
   beneficiosScroll: {
     flexDirection: 'row',
-    gap: 12,
-    paddingRight: 20,
+    gap: 14,
+    paddingRight: 4,
+    paddingBottom: 4,
   },
   beneficioCard: {
+    width: 140,
+    minHeight: 136,
     backgroundColor: Colors.white,
-    borderRadius: 16,
-    padding: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
+    borderRadius: 12,
+    padding: 12,
+    justifyContent: 'space-between',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
+    shadowOpacity: 0.08,
     shadowRadius: 6,
     elevation: 3,
   },
   beneficioTitulo: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '700',
     color: Colors.text,
     marginTop: 10,
+    lineHeight: 18,
   },
-  beneficioDesconto: {
+  descontoBadge: {
+    alignSelf: 'flex-start',
+    backgroundColor: '#E8F5E9',
+    borderRadius: 12,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    marginTop: 10,
+  },
+  descontoBadgeText: {
     fontSize: 12,
-    color: Colors.primary,
-    fontWeight: '600',
-    marginTop: 4,
+    fontWeight: '700',
+    color: '#2E7D32',
   },
 });

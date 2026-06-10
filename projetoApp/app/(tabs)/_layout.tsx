@@ -1,12 +1,20 @@
-import { Tabs } from 'expo-router';
+import { Tabs, Redirect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useAuth } from '@/contexts/AuthContext';
+import { Colors } from '@/constants/Colors';
 
 export default function TabsLayout() {
+  const { isAuthenticated } = useAuth();
+
+  if (!isAuthenticated) {
+    return <Redirect href="/login" />;
+  }
+
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: '#0056D2',
+        tabBarActiveTintColor: Colors.primary,
         tabBarInactiveTintColor: '#666666',
         tabBarStyle: { backgroundColor: '#FFFFFF' },
       }}
@@ -36,6 +44,12 @@ export default function TabsLayout() {
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="people-outline" size={size} color={color} />
           ),
+        }}
+      />
+      <Tabs.Screen
+        name="perfil"
+        options={{
+          href: null,
         }}
       />
     </Tabs>

@@ -1,17 +1,33 @@
-import type { User, Pauta, ChatMessage, Chamado } from '@/constants/types';
+import type { MockAccount, Pauta, ChatMessage, Chamado } from '@/constants/types';
 
 /**
  * Mock Data - Dados fictícios para protótipo
  * Baseado nas interfaces do CONTEXT.md
  */
 
-export const MOCK_USER: User = {
-  id: 'user-001',
-  name: 'Maria da Silva',
-  rs_registro: '12345',
-  plan: 'Gold',
-  status: 'active',
-};
+export const MOCK_ACCOUNTS: MockAccount[] = [
+  {
+    id: 'user-001',
+    name: 'Maria da Silva',
+    rs_registro: '12345',
+    plan: 'Gold',
+    status: 'active',
+    email: 'maria@email.com',
+    password: '123456',
+  },
+  {
+    id: 'user-002',
+    name: 'Fernando de Oliveira Guedes',
+    rs_registro: '9999999999',
+    plan: 'Gold',
+    status: 'active',
+    email: 'fernando@email.com',
+    password: '123456',
+  },
+];
+
+/** @deprecated Use useAuth() para o usuário logado */
+export const MOCK_USER = MOCK_ACCOUNTS[0];
 
 export const MOCK_PAUTAS: Pauta[] = [
   {
@@ -21,8 +37,8 @@ export const MOCK_PAUTAS: Pauta[] = [
       'Proposta de alteração nos artigos 15 a 22 do Estatuto Social, referente aos direitos e deveres dos associados. A reforma visa modernizar o regimento interno e adequar às novas exigências legais.',
     status: 'open',
     open_until: '2025-03-15T23:59:59.000Z',
-    video_url: 'https://example.com/video-reforma.mp4',
-    pdf_url: 'https://example.com/pauta-reforma.pdf',
+    video_url: 'https://www.youtube.com/watch?v=M7lc1UVf-VE',
+    pdf_url: 'assets/pautas/pauta-reforma-estatuto.pdf',
     votes_count: { favor: 42, against: 8, abstain: 5 },
   },
   {
@@ -32,7 +48,7 @@ export const MOCK_PAUTAS: Pauta[] = [
       'Discussão e votação do orçamento anual da associação para o exercício de 2025. Inclui investimentos em infraestrutura e ampliação dos benefícios aos associados.',
     status: 'open',
     open_until: '2025-02-28T23:59:59.000Z',
-    pdf_url: 'https://example.com/orcamento-2025.pdf',
+    pdf_url: 'assets/pautas/aprovacao-orcamento-2025-pauta.pdf',
     votes_count: { favor: 38, against: 12, abstain: 3 },
   },
   {
@@ -42,7 +58,7 @@ export const MOCK_PAUTAS: Pauta[] = [
       'Processo eleitoral para escolha dos novos membros da diretoria executiva para o biênio 2025-2027. Candidatos apresentarão propostas em assembleia prévia.',
     status: 'closed',
     open_until: '2024-12-10T23:59:59.000Z',
-    video_url: 'https://example.com/video-eleicao.mp4',
+    video_url: 'https://www.youtube.com/watch?v=ysz5S6PUM-U',
     pdf_url: 'https://example.com/edital-eleicao.pdf',
     votes_count: { favor: 120, against: 15, abstain: 10 },
   },
@@ -119,6 +135,11 @@ export const MOCK_BENEFICIOS = [
   { id: 'b1', titulo: 'Farmácia X', desconto: '10% OFF' },
   { id: 'b2', titulo: 'Posto Y', desconto: '5% OFF' },
   { id: 'b3', titulo: 'Cinema Z', desconto: 'Meia' },
+  { id: 'b4', titulo: 'Academia FitPro', desconto: '20% OFF' },
+  { id: 'b5', titulo: 'Restaurante Sabor & Arte', desconto: '15% OFF' },
+  { id: 'b6', titulo: 'Ótica Visão Clara', desconto: '12% OFF' },
+  { id: 'b7', titulo: 'Supermercado Bom Preço', desconto: '8% OFF' },
+  { id: 'b8', titulo: 'Hotel Praia Azul', desconto: 'Diária -25%' },
 ];
 
 /** Mensagens fictícias para o Chat Jurídico (legado - usar MOCK_MENSAGENS_POR_CHAMADO) */

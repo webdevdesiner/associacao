@@ -8,36 +8,55 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  ActivityIndicator,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import * as Haptics from 'expo-haptics';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors } from '@/constants/Colors';
-
-const RS_INVALIDO = '0000';
+import { Colors, BrandGradient } from '@/constants/Colors';
+import { getLoginError, validateLogin } from '@/constants/auth';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function LoginScreen() {
   const router = useRouter();
-  const [email, setEmail] = useState('maria@email.com');
-  const [senha, setSenha] = useState('123456');
-  const [rs, setRs] = useState('12345');
+  const { login } = useAuth();
+  const [email, setEmail] = useState('');
+  const [senha, setSenha] = useState('');
+  const [rs, setRs] = useState('');
   const [erro, setErro] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleLogin = () => {
     setErro('');
 
     if (!email.trim() || !senha.trim() || !rs.trim()) {
       setErro('Preencha todos os campos.');
+      setIsLoading(false);
       return;
     }
 
-    if (rs.trim() === RS_INVALIDO) {
-      setErro(
-        'Registro não encontrado na base oficial. Contate a secretaria.'
-      );
+    const loginError = getLoginError(rs, senha);
+    if (loginError) {
+      setErro(loginError);
+      setIsLoading(false);
       return;
     }
 
-    router.replace('/(tabs)/');
+    const user = validateLogin(rs, senha);
+    if (!user) {
+      setErro('RS ou senha incorretos.');
+      setIsLoading(false);
+      return;
+    }
+
+    login(user);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    setIsLoading(true);
+    setTimeout(() => {
+      setIsLoading(false);
+      router.replace('/(tabs)/');
+    }, 1500);
   };
 
   return (
@@ -49,9 +68,14 @@ export default function LoginScreen() {
         contentContainerStyle={styles.content}
         keyboardShouldPersistTaps="handled"
       >
-        <View style={styles.logoBox}>
+        <LinearGradient
+          colors={[...BrandGradient.colors]}
+          start={BrandGradient.start}
+          end={BrandGradient.end}
+          style={styles.logoBox}
+        >
           <Ionicons name="shield-checkmark" size={48} color={Colors.white} />
-        </View>
+        </LinearGradient>
         <Text style={styles.title}>Associação Digital</Text>
         <Text style={styles.subtitle}>
           Acesso exclusivo para associados
@@ -84,7 +108,7 @@ export default function LoginScreen() {
             style={styles.input}
             value={rs}
             onChangeText={setRs}
-            placeholder="Ex: 12345"
+            placeholder="Ex: 9999999999"
             placeholderTextColor={Colors.textSecondary}
             keyboardType="number-pad"
           />
@@ -97,15 +121,27 @@ export default function LoginScreen() {
           ) : null}
 
           <TouchableOpacity
-            style={styles.button}
             activeOpacity={0.8}
             onPress={handleLogin}
+            disabled={isLoading}
+            style={styles.buttonWrap}
           >
-            <Text style={styles.buttonText}>Entrar</Text>
+            <LinearGradient
+              colors={[...BrandGradient.colors]}
+              start={BrandGradient.start}
+              end={BrandGradient.end}
+              style={styles.button}
+            >
+              {isLoading ? (
+                <ActivityIndicator color={Colors.white} />
+              ) : (
+                <Text style={styles.buttonText}>Entrar</Text>
+              )}
+            </LinearGradient>
           </TouchableOpacity>
 
           <Text style={styles.hint}>
-            Demo: RS 12345 entra · RS 0000 exibe erro
+            Fernando: RS 9999999999 · senha 123456
           </Text>
         </View>
       </ScrollView>
@@ -127,7 +163,6 @@ const styles = StyleSheet.create({
     width: 88,
     height: 88,
     borderRadius: 44,
-    backgroundColor: Colors.primary,
     alignSelf: 'center',
     alignItems: 'center',
     justifyContent: 'center',
@@ -188,8 +223,11 @@ const styles = StyleSheet.create({
     color: Colors.error,
     fontWeight: '500',
   },
+  buttonWrap: {
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
   button: {
-    backgroundColor: Colors.primary,
     borderRadius: 12,
     paddingVertical: 16,
     alignItems: 'center',
