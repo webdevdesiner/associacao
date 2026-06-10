@@ -16,9 +16,11 @@ import { hasPautaVideo } from '@/constants/pautaVideos';
 import { PautaVideoModal } from '@/components/PautaVideoModal';
 import { PautaPdfConfirmModal } from '@/components/PautaPdfConfirmModal';
 import { Colors } from '@/constants/Colors';
+import { useStackContentPadding } from '@/hooks/useStackContentPadding';
 
 export default function PautaDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
+  const contentPaddingTop = useStackContentPadding(20);
   const [hasVoted, setHasVoted] = useState(false);
   const [votoPendente, setVotoPendente] = useState<string | null>(null);
   const [videoModalVisible, setVideoModalVisible] = useState(false);
@@ -49,7 +51,7 @@ export default function PautaDetailScreen() {
   return (
     <ScrollView
       style={styles.container}
-      contentContainerStyle={styles.content}
+      contentContainerStyle={[styles.content, { paddingTop: contentPaddingTop }]}
       showsVerticalScrollIndicator={false}
     >
       {/* Título e Status */}
@@ -218,7 +220,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.secondary,
   },
   content: {
-    padding: 20,
+    paddingHorizontal: 20,
     paddingBottom: 40,
   },
   centerContainer: {

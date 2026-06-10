@@ -6,6 +6,13 @@
     "orientation": "portrait",
     "scheme": "associacao",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true
+    "newArchEnabled": true,
+    "android": {
+      "statusBar": {
+        "backgroundColor": "#01092D",
+        "barStyle": "light-content",
+        "translucent": false
+      }
+    }
   }
 }

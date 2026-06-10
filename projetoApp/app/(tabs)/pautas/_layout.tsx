@@ -2,7 +2,7 @@ import { Stack } from 'expo-router';
 import { View, StyleSheet } from 'react-native';
 import { HeaderBackButton, HeaderHomeButton } from '@/components/HeaderButtons';
 import { HeaderMenuButton } from '@/components/HeaderMenuButton';
-import { HeaderGradientBackground } from '@/components/BrandGradient';
+import { getGradientStackScreenOptions } from '@/components/BrandGradient';
 
 export const unstable_settings = {
   initialRouteName: 'index',
@@ -26,14 +26,7 @@ const styles = StyleSheet.create({
 
 export default function PautasLayout() {
   return (
-    <Stack
-      screenOptions={{
-        headerBackground: () => <HeaderGradientBackground />,
-        headerStyle: { backgroundColor: 'transparent' },
-        headerTintColor: '#FFFFFF',
-        headerTitleStyle: { fontWeight: '600' },
-      }}
-    >
+    <Stack screenOptions={getGradientStackScreenOptions()}>
       <Stack.Screen
         name="index"
         options={{

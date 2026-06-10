@@ -10,6 +10,7 @@ import { useRouter } from 'expo-router';
 import { MOCK_PAUTAS } from '@/constants/MockData';
 import type { Pauta } from '@/constants/types';
 import { Colors } from '@/constants/Colors';
+import { useStackContentPadding } from '@/hooks/useStackContentPadding';
 
 const RESUMO_LENGTH = 80;
 
@@ -53,6 +54,8 @@ function PautaCard({ item }: { item: Pauta }) {
 }
 
 export default function PautasListScreen() {
+  const contentPaddingTop = useStackContentPadding();
+
   const renderItem: ListRenderItem<Pauta> = ({ item }) => (
     <PautaCard item={item} />
   );
@@ -63,7 +66,7 @@ export default function PautasListScreen() {
         data={MOCK_PAUTAS}
         renderItem={renderItem}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.listContent}
+        contentContainerStyle={[styles.listContent, { paddingTop: contentPaddingTop }]}
         ItemSeparatorComponent={() => <View style={styles.separator} />}
       />
     </View>
@@ -76,7 +79,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.secondary,
   },
   listContent: {
-    padding: 16,
+    paddingHorizontal: 16,
     paddingBottom: 24,
   },
   separator: {

@@ -1,7 +1,7 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import { StyleSheet, type StyleProp, type ViewStyle } from 'react-native';
+import { Platform, StyleSheet, type StyleProp, type ViewStyle } from 'react-native';
 import type { ReactNode } from 'react';
-import { BrandGradient } from '@/constants/Colors';
+import { BrandGradient, Colors } from '@/constants/Colors';
 
 type Props = {
   style?: StyleProp<ViewStyle>;
@@ -22,7 +22,21 @@ export function BrandGradientView({ style, children }: Props) {
 }
 
 export function HeaderGradientBackground() {
-  return (
-    <BrandGradientView style={StyleSheet.absoluteFill} />
-  );
+  return <BrandGradientView style={StyleSheet.absoluteFillObject} />;
+}
+
+/** Opções do Stack com header azul — evita header transparente no celular. */
+export function getGradientStackScreenOptions() {
+  const isWeb = Platform.OS === 'web';
+
+  return {
+    headerBackground: () => <HeaderGradientBackground />,
+    headerStyle: {
+      backgroundColor: isWeb ? 'transparent' : Colors.primary,
+    },
+    headerTintColor: '#FFFFFF',
+    headerTitleStyle: { fontWeight: '600' as const },
+    headerShadowVisible: false,
+    statusBarStyle: 'light' as const,
+  };
 }

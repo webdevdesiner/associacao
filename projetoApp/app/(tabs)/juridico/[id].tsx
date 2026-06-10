@@ -21,6 +21,7 @@ import {
 import type { ChatAttachment, ChatMessage } from '@/constants/types';
 import { Colors } from '@/constants/Colors';
 import { BrandGradientView } from '@/components/BrandGradient';
+import { useStackHeaderOffset } from '@/hooks/useStackContentPadding';
 
 const RESPOSTA_TEXTO = 'Recebi sua mensagem, vou analisar.';
 const RESPOSTA_ANEXO = 'Documento recebido. Vou analisar em breve.';
@@ -169,6 +170,7 @@ function MessageBubble({ item }: { item: ChatMessage }) {
 
 export default function ChatScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
+  const headerOffset = useStackHeaderOffset();
   const [inputText, setInputText] = useState('');
   const [pendingAttachment, setPendingAttachment] = useState<ChatAttachment | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>(() => {
@@ -256,7 +258,7 @@ export default function ChatScreen() {
 
   return (
     <KeyboardAvoidingView
-      style={styles.container}
+      style={[styles.container, { paddingTop: headerOffset }]}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
     >
@@ -361,7 +363,8 @@ const styles = StyleSheet.create({
     color: Colors.error,
   },
   listContent: {
-    padding: 16,
+    paddingHorizontal: 16,
+    paddingTop: 8,
     paddingBottom: 8,
   },
   bubbleContainer: {

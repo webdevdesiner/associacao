@@ -12,6 +12,7 @@ import { MOCK_CHAMADOS } from '@/constants/MockData';
 import type { Chamado } from '@/constants/types';
 import { Colors } from '@/constants/Colors';
 import { BrandGradientView } from '@/components/BrandGradient';
+import { useStackContentPadding } from '@/hooks/useStackContentPadding';
 
 function getIniciais(name: string): string {
   const partes = name
@@ -79,6 +80,7 @@ function ChamadoItem({ item }: { item: Chamado }) {
 
 export default function JuridicoListScreen() {
   const router = useRouter();
+  const contentPaddingTop = useStackContentPadding();
 
   const renderItem: ListRenderItem<Chamado> = ({ item }) => (
     <ChamadoItem item={item} />
@@ -90,7 +92,7 @@ export default function JuridicoListScreen() {
         data={MOCK_CHAMADOS}
         renderItem={renderItem}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.listContent}
+        contentContainerStyle={[styles.listContent, { paddingTop: contentPaddingTop }]}
         ItemSeparatorComponent={() => <View style={styles.separator} />}
       />
       <TouchableOpacity
@@ -112,7 +114,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.secondary,
   },
   listContent: {
-    padding: 16,
+    paddingHorizontal: 16,
     paddingBottom: 100,
   },
   separator: {
