@@ -1,0 +1,257 @@
+import { useState } from 'react';
+import {
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  StyleSheet,
+  Alert,
+} from 'react-native';
+import { useLocalSearchParams } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
+import { MOCK_PAUTAS } from '@/constants/MockData';
+import { Colors } from '@/constants/Colors';
+
+export default function PautaDetailScreen() {
+  const { id } = useLocalSearchParams<{ id: string }>();
+  const [hasVoted, setHasVoted] = useState(false);
+
+  const pauta = MOCK_PAUTAS.find((p) => p.id === id);
+  const isOpen = pauta?.status === 'open';
+
+  const handleVote = (opcao: string) => {
+    Alert.alert('Voto Confirmado!', `Você votou ${opcao}.`, [
+      {
+        text: 'OK',
+        onPress: () => setHasVoted(true),
+      },
+    ]);
+  };
+
+  if (!pauta) {
+    return (
+      <View style={styles.centerContainer}>
+        <Text style={styles.errorText}>Pauta não encontrada.</Text>
+      </View>
+    );
+  }
+
+  return (
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.content}
+      showsVerticalScrollIndicator={false}
+    >
+      {/* Título e Status */}
+      <Text style={styles.title}>{pauta.title}</Text>
+      <View
+        style={[
+          styles.badge,
+          isOpen ? styles.badgeOpen : styles.badgeClosed,
+        ]}
+      >
+        <Text
+          style={[
+            styles.badgeText,
+            isOpen ? styles.badgeTextOpen : styles.badgeTextClosed,
+          ]}
+        >
+          {isOpen ? 'Aberta' : 'Encerrada'}
+        </Text>
+      </View>
+
+      {/* Descrição */}
+      <Text style={styles.description}>{pauta.description}</Text>
+
+      {/* Placeholders Vídeo e PDF */}
+      <View style={styles.mediaRow}>
+        <View style={styles.mediaPlaceholder}>
+          <Ionicons name="videocam-outline" size={32} color={Colors.textSecondary} />
+          <Text style={styles.mediaLabel}>Vídeo</Text>
+        </View>
+        <View style={styles.mediaPlaceholder}>
+          <Ionicons name="document-text-outline" size={32} color={Colors.textSecondary} />
+          <Text style={styles.mediaLabel}>PDF</Text>
+        </View>
+      </View>
+
+      {/* Área de Votação */}
+      <View style={styles.votingSection}>
+        {!isOpen ? (
+          <View style={styles.closedBox}>
+            <Ionicons name="lock-closed-outline" size={40} color={Colors.textSecondary} />
+            <Text style={styles.closedText}>Votação Encerrada</Text>
+          </View>
+        ) : hasVoted ? (
+          <View style={styles.successBox}>
+            <Ionicons name="checkmark-circle" size={40} color={Colors.success} />
+            <Text style={styles.successText}>Você já votou nesta pauta</Text>
+          </View>
+        ) : (
+          <>
+            <Text style={styles.votingTitle}>Sua votação</Text>
+            <TouchableOpacity
+              style={[styles.voteButton, styles.voteFavor]}
+              activeOpacity={0.8}
+              onPress={() => handleVote('A Favor')}
+            >
+              <Text style={styles.voteButtonText}>A Favor</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.voteButton, styles.voteContra]}
+              activeOpacity={0.8}
+              onPress={() => handleVote('Contra')}
+            >
+              <Text style={styles.voteButtonText}>Contra</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.voteButton, styles.voteAbster]}
+              activeOpacity={0.8}
+              onPress={() => handleVote('Abster')}
+            >
+              <Text style={[styles.voteButtonText, styles.voteAbsterText]}>
+                Abster
+              </Text>
+            </TouchableOpacity>
+          </>
+        )}
+      </View>
+    </ScrollView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: Colors.secondary,
+  },
+  content: {
+    padding: 20,
+    paddingBottom: 40,
+  },
+  centerContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: Colors.secondary,
+  },
+  errorText: {
+    fontSize: 16,
+    color: Colors.error,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: Colors.text,
+    marginBottom: 12,
+    lineHeight: 32,
+  },
+  badge: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+    marginBottom: 20,
+  },
+  badgeOpen: {
+    backgroundColor: '#E8F5E9',
+  },
+  badgeClosed: {
+    backgroundColor: '#EEEEEE',
+  },
+  badgeText: {
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  badgeTextOpen: {
+    color: Colors.success,
+  },
+  badgeTextClosed: {
+    color: Colors.textSecondary,
+  },
+  description: {
+    fontSize: 16,
+    color: Colors.text,
+    lineHeight: 24,
+    marginBottom: 24,
+  },
+  mediaRow: {
+    flexDirection: 'row',
+    gap: 12,
+    marginBottom: 28,
+  },
+  mediaPlaceholder: {
+    flex: 1,
+    height: 100,
+    backgroundColor: Colors.border,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  mediaLabel: {
+    marginTop: 8,
+    fontSize: 14,
+    color: Colors.textSecondary,
+  },
+  votingSection: {
+    backgroundColor: Colors.white,
+    borderRadius: 12,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  votingTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: Colors.text,
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  voteButton: {
+    paddingVertical: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  voteFavor: {
+    backgroundColor: Colors.success,
+  },
+  voteContra: {
+    backgroundColor: Colors.error,
+  },
+  voteAbster: {
+    backgroundColor: Colors.border,
+    marginBottom: 0,
+  },
+  voteButtonText: {
+    fontSize: 17,
+    fontWeight: '600',
+    color: Colors.white,
+  },
+  voteAbsterText: {
+    color: Colors.text,
+  },
+  closedBox: {
+    alignItems: 'center',
+    paddingVertical: 24,
+  },
+  closedText: {
+    marginTop: 12,
+    fontSize: 18,
+    fontWeight: '600',
+    color: Colors.textSecondary,
+  },
+  successBox: {
+    alignItems: 'center',
+    paddingVertical: 24,
+  },
+  successText: {
+    marginTop: 12,
+    fontSize: 18,
+    fontWeight: '600',
+    color: Colors.success,
+  },
+});

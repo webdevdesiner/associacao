@@ -1,0 +1,11 @@
+{
+  "expo": {
+    "name": "Associação Digital",
+    "slug": "app-associacao-digital",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "associacao",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true
+  }
+}

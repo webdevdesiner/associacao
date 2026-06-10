@@ -1,0 +1,80 @@
+// Prisma Schema - Associação Digital
+// Banco: MySQL
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String   @id @default(cuid())
+  name        String
+  rs_registro String   @unique
+  plan        String   // Bronze | Silver | Gold
+  status      String   // active | delinquent
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  votes        Vote[]
+  legalTickets LegalTicket[]
+}
+
+model Pauta {
+  id          String   @id @default(cuid())
+  title       String
+  description String   @db.Text
+  status      String   // open | closed
+  open_until  DateTime
+  video_url   String?
+  pdf_url     String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  votes Vote[]
+}
+
+model Vote {
+  id        String   @id @default(cuid())
+  pautaId   String
+  userId    String
+  option    String   // favor | against | abstain
+  createdAt DateTime @default(now())
+
+  pauta Pauta @relation(fields: [pautaId], references: [id], onDelete: Cascade)
+  user User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([pautaId, userId])
+  @@index([pautaId])
+  @@index([userId])
+}
+
+model LegalTicket {
+  id             String   @id @default(cuid())
+  userId         String
+  lawyerName     String
+  lastMessage    String?  @db.Text
+  lastMessageAt  DateTime?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user     User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages LegalMessage[]
+
+  @@index([userId])
+}
+
+model LegalMessage {
+  id        String   @id @default(cuid())
+  ticketId  String
+  text      String   @db.Text
+  sender    String   // user | lawyer | system
+  createdAt DateTime @default(now())
+
+  ticket LegalTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  @@index([ticketId])
+}
