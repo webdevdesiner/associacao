@@ -1,4 +1,5 @@
 import { Stack } from 'expo-router';
+import { HeaderBackButton, HeaderHomeButton } from '@/components/HeaderButtons';
 
 export const unstable_settings = {
   initialRouteName: 'index',
@@ -19,7 +20,11 @@ export default function PautasLayout() {
       />
       <Stack.Screen
         name="[id]"
-        options={{ title: 'Detalhe da Pauta' }}
+        options={{
+          title: 'Detalhe da Pauta',
+          headerLeft: () => <HeaderBackButton />,
+          headerRight: () => <HeaderHomeButton />,
+        }}
       />
     </Stack>
   );

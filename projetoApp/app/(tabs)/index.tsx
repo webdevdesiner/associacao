@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import {
   View,
   Text,
@@ -13,6 +14,7 @@ import {
   MOCK_BENEFICIOS,
 } from '@/constants/MockData';
 import { Colors } from '@/constants/Colors';
+import { CarteirinhaModal } from '@/components/CarteirinhaModal';
 
 function getIniciais(name: string): string {
   const partes = name.trim().split(/\s+/);
@@ -28,6 +30,7 @@ function getStatusLabel(status: string): string {
 
 export default function HomeScreen() {
   const router = useRouter();
+  const [carteirinhaAberta, setCarteirinhaAberta] = useState(false);
   const temPautaAberta = MOCK_PAUTAS.some((p) => p.status === 'open');
   const beneficioCardSize = 120;
 
@@ -69,10 +72,21 @@ export default function HomeScreen() {
             </Text>
           </View>
         </View>
-        <View style={styles.qrIcon}>
+        <TouchableOpacity
+          style={styles.qrIcon}
+          activeOpacity={0.7}
+          onPress={() => setCarteirinhaAberta(true)}
+          accessibilityLabel="Abrir carteirinha digital"
+        >
           <Ionicons name="qr-code-outline" size={40} color="rgba(255,255,255,0.9)" />
-        </View>
+        </TouchableOpacity>
       </View>
+
+      <CarteirinhaModal
+        visible={carteirinhaAberta}
+        user={MOCK_USER}
+        onClose={() => setCarteirinhaAberta(false)}
+      />
 
       {/* Atalhos Rápidos */}
       <Text style={styles.sectionTitle}>Atalhos Rápidos</Text>

@@ -1,4 +1,5 @@
 import { Stack } from 'expo-router';
+import { HeaderBackButton, HeaderHomeButton } from '@/components/HeaderButtons';
 
 export default function JuridicoLayout() {
   return (
@@ -15,7 +16,11 @@ export default function JuridicoLayout() {
       />
       <Stack.Screen
         name="[id]"
-        options={{ title: 'Chat' }}
+        options={{
+          title: 'Chat',
+          headerLeft: () => <HeaderBackButton />,
+          headerRight: () => <HeaderHomeButton />,
+        }}
       />
     </Stack>
   );

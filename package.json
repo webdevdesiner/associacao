@@ -1,0 +1,13 @@
+{
+  "name": "associacao",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Ecossistema Associação Digital - App + API",
+  "scripts": {
+    "web": "cd projetoApp && npm run web",
+    "app": "cd projetoApp && npm start",
+    "api": "cd backend-api && npm run dev",
+    "install:app": "cd projetoApp && npm install --legacy-peer-deps",
+    "install:api": "cd backend-api && npm install"
+  }
+}

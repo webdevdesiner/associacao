@@ -5,7 +5,8 @@ import {
   ScrollView,
   TouchableOpacity,
   StyleSheet,
-  Alert,
+  Modal,
+  Pressable,
 } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -15,17 +16,20 @@ import { Colors } from '@/constants/Colors';
 export default function PautaDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const [hasVoted, setHasVoted] = useState(false);
+  const [votoPendente, setVotoPendente] = useState<string | null>(null);
 
   const pauta = MOCK_PAUTAS.find((p) => p.id === id);
   const isOpen = pauta?.status === 'open';
 
   const handleVote = (opcao: string) => {
-    Alert.alert('Voto Confirmado!', `Você votou ${opcao}.`, [
-      {
-        text: 'OK',
-        onPress: () => setHasVoted(true),
-      },
-    ]);
+    setVotoPendente(opcao);
+  };
+
+  const confirmarVoto = () => {
+    if (votoPendente) {
+      setHasVoted(true);
+      setVotoPendente(null);
+    }
   };
 
   if (!pauta) {
@@ -116,6 +120,33 @@ export default function PautaDetailScreen() {
           </>
         )}
       </View>
+
+      <Modal
+        visible={votoPendente !== null}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setVotoPendente(null)}
+      >
+        <Pressable
+          style={styles.modalOverlay}
+          onPress={() => setVotoPendente(null)}
+        >
+          <Pressable style={styles.modalCard} onPress={(e) => e.stopPropagation()}>
+            <Ionicons name="checkmark-circle" size={48} color={Colors.success} />
+            <Text style={styles.modalTitle}>Voto Confirmado!</Text>
+            <Text style={styles.modalText}>
+              Você votou {votoPendente}.
+            </Text>
+            <TouchableOpacity
+              style={styles.modalButton}
+              onPress={confirmarVoto}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.modalButtonText}>OK</Text>
+            </TouchableOpacity>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </ScrollView>
   );
 }
@@ -253,5 +284,44 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
     color: Colors.success,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  modalCard: {
+    width: '100%',
+    maxWidth: 320,
+    backgroundColor: Colors.white,
+    borderRadius: 16,
+    padding: 24,
+    alignItems: 'center',
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: Colors.text,
+    marginTop: 12,
+  },
+  modalText: {
+    fontSize: 16,
+    color: Colors.textSecondary,
+    marginTop: 8,
+    textAlign: 'center',
+  },
+  modalButton: {
+    marginTop: 20,
+    backgroundColor: Colors.primary,
+    paddingHorizontal: 32,
+    paddingVertical: 12,
+    borderRadius: 10,
+  },
+  modalButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: Colors.white,
   },
 });
